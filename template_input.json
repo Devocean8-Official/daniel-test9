@@ -1,0 +1,11 @@
+{
+    "_output_dir": "/private/tmp/devocean",
+    "_template": "/Users/danielhabib/src/devOcean/dev-repositories-management/templates",
+    "include_github_actions": "yes",
+    "project_slug": "daniel_test9",
+    "repo_description": "",
+    "repo_language": "",
+    "repo_name": "daniel-test9",
+    "repo_type": "library",
+    "team_id": "devocean-infra"
+}

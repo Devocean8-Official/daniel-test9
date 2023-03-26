@@ -1,0 +1,77 @@
+
+
+name: Python version bump
+
+on:
+  pull_request:
+    types: [reopened]
+
+jobs:
+  python-version-bump:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.9]
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Checkout PR branch
+        run: |
+          echo ${{ github.event.pull_request.head.ref }}
+          git config --global user.name 'Version Bumper'
+          git config --global user.email 'version_bumper@devocean.security'
+          git fetch
+          git checkout ${{ github.event.pull_request.head.ref }}
+
+      - name: Bump version - minor
+        if: contains( github.event.pull_request.labels.*.name, 'Version bumped') == false && contains( github.event.pull_request.labels.*.name, 'release:minor')
+        run: |
+          cp ./.github/workflows/bump_version.py ./
+          python ./bump_version.py minor
+
+      - name: Bump version - major
+        if: contains( github.event.pull_request.labels.*.name, 'Version bumped') == false && contains( github.event.pull_request.labels.*.name, 'release:major')
+        run: |
+          cp ./.github/workflows/bump_version.py ./
+          python ./bump_version.py major
+
+      - name: Bump version - patch
+        if: contains( github.event.pull_request.labels.*.name, 'Version bumped') == false && contains( github.event.pull_request.labels.*.name, 'release:patch')
+        run: |
+          cp ./.github/workflows/bump_version.py ./
+          python ./bump_version.py patch
+
+      - name: Bump version - minor - default
+        if: contains( github.event.pull_request.labels.*.name, 'Version bumped') == false && contains( github.event.pull_request.labels.*.name, 'release:minor') == false && contains( github.event.pull_request.labels.*.name, 'release:major') == false && contains( github.event.pull_request.labels.*.name, 'release:patch') == false
+        run: |
+          cp ./.github/workflows/bump_version.py ./
+          python ./bump_version.py minor
+
+      - name: add labels
+        uses: actions-ecosystem/action-add-labels@v1
+        if: contains( github.event.pull_request.labels.*.name, 'Version bumped') == false
+        with:
+          github_token: ${{ github.token }}
+          labels: Version bumped
+
+
+      - name: Commit & Push
+        if: contains( github.event.pull_request.labels.*.name, 'Version bumped') == false
+        run: |
+          echo ${{ github.event.pull_request.head.ref }}
+          git config --global user.name 'Version Bumper'
+          git config --global user.email 'version_bumper@devocean.security'
+          git fetch
+          git checkout ${{ github.event.pull_request.head.ref }}
+          git add -u
+          git commit -m "version bumped"
+          git push
+
